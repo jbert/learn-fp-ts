@@ -1,5 +1,5 @@
 - write 'reader task either from scratch' md in docs
-    - heterogeneous list (nums or error string)
+    DONE - heterogeneous list (nums or error string)
         - handling requires policy at the point of processing
             - print all errors or num errors
     - typed array of data (typed with either<num,string>)
