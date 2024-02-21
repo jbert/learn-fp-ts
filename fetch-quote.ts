@@ -5,24 +5,20 @@ import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/function";
 
-const responseToString = (r: AxiosResponse<any,any>): string => {
+const responseToString = (r: AxiosResponse<any, any>): string => {
     return r.data;
-}
+};
 
 const fetchPage = (u: string): TE.TaskEither<Error, string> => {
-    const p = axios.get(u)
-//    return TE.tryCatchK(() => p, (reason: unknown) => Error(String(reason)))();
-    return pipe( TE.tryCatchK(() => p, (reason: unknown) =>
-                              Error(String(reason)))(),
-                              TE.map(responseToString))
-}
-
-/*
-   const fetchPage = (u: string): TE.TaskEither<Error, string> => { const t =
-   T.of("some text")
-    return TE.rightTask(t)
-}
-*/
+    const p = axios.get(u);
+    return pipe(
+        TE.tryCatchK(
+            () => p,
+            (reason: unknown) => Error(String(reason))
+        )(),
+        TE.map(responseToString)
+    );
+};
 
 const printPage = (s: string) => {
     console.log(s);
@@ -31,7 +27,6 @@ const printPage = (s: string) => {
 const main = async () => {
     const u = "https://zenquotes.io/api/quotes";
     pipe(u, fetchPage, TE.map(printPage))();
-    
 };
 
 main();
