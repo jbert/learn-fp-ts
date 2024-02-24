@@ -51,9 +51,10 @@ const program = ({ quoteURL }: Params): TE.TaskEither<Error, string> => {
     return pipe(
         quoteURL,
         fetchPage,
-        TE.map(A.map(quoteToString)),
-        TE.map(A.head),
-        TE.map(O.getOrElse(() => "No quotes!")),
+        TE.map(flow(A.map(quoteToString),
+                    A.head,
+                    O.getOrElse(() => "No quotes!")),
+              ),
     );
 };
 
