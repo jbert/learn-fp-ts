@@ -14,6 +14,9 @@ dependencies:
   fp-ts:
     specifier: ^2.16.2
     version: 2.16.2
+  io-ts:
+    specifier: ^2.2.21
+    version: 2.2.21(fp-ts@2.16.2)
 
 packages:
 
@@ -64,6 +67,14 @@ packages:
 
   /fp-ts@2.16.2:
     resolution: {integrity: sha512-CkqAjnIKFqvo3sCyoBTqgJvF+bHrSik584S9nhTjtBESLx26cbtVMR/T9a6ApChOcSDAaM3JydDmWDUn4EEXng==}
+    dev: false
+
+  /io-ts@2.2.21(fp-ts@2.16.2):
+    resolution: {integrity: sha512-zz2Z69v9ZIC3mMLYWIeoUcwWD6f+O7yP92FMVVaXEOSZH1jnVBmET/urd/uoarD1WGBY4rCj8TAyMPzsGNzMFQ==}
+    peerDependencies:
+      fp-ts: ^2.5.0
+    dependencies:
+      fp-ts: 2.16.2
     dev: false
 
   /mime-db@1.52.0:

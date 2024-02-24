@@ -1,58 +1,61 @@
 #!/usr/bin/env ts-node
 import axios from "axios";
 import { AxiosResponse } from "axios";
-import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
-import * as J from "fp-ts/Json";
+import * as A from "fp-ts/Array";
+import * as D from "io-ts/Decoder";
+import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
 
-interface Quote {
-    q: string;
-    a: string;
-    c: string;
-    h: string;
+const Quote = D.struct({
+    q: D.string,
+    a: D.string,
+    c: D.string,
+    h: D.string,
+});
+const QuoteArray = D.array(Quote);
+type Quote = D.TypeOf<typeof Quote>
+
+const mapErr = (de: D.DecodeError) : Error => {
+    return Error(JSON.stringify(de))
 }
 
-const responseToString = (r: AxiosResponse<any, any>): string => {
-    return r.data;
+const parseResponse = (r: AxiosResponse<unknown, unknown>): TE.TaskEither<Error, Array<Quote>> => {
+    return pipe(
+        r.data,
+        QuoteArray.decode,
+        E.mapLeft(mapErr),
+        TE.fromEither,
+    );
 };
 
-const firstElt = (j: J.Json): J.Json => {
-    if (j == undefined) {
-        throw "ack";
-    }
-    if (j instanceof J.JsonArray) {
-        if (j.length == 0) {
-            throw "ack";
-        }
-        return j[0];
-    } else {
-        throw "ack";
-    }
-};
-
-const extractQuotes = (js: string): E.Either<unknown, string> => {
-    return pipe(js, J.parse, firstElt, J.stringify);
+const quoteToString = (q: Quote): string => {
+    return q.q;
 };
 
 interface Params {
     quoteURL: string;
 }
 
-const fetchPage = (quoteURL: string): TE.TaskEither<Error, string> => {
-    const p = axios.get(quoteURL);
+const fetchPage = (quoteURL: string): TE.TaskEither<Error, Array<Quote>> => {
     return pipe(
         TE.tryCatchK(
-            () => p,
+            () => axios.get(quoteURL),
             (reason: unknown) => Error(String(reason))
         )(),
-        TE.map(responseToString)
+        TE.chain(parseResponse),
     );
 };
 
 const program = ({ quoteURL }: Params): TE.TaskEither<Error, string> => {
-    return pipe(quoteURL, fetchPage);
+    return pipe(
+        quoteURL,
+        fetchPage,
+        TE.map(A.map(quoteToString)),
+        TE.map(A.head),
+        TE.map(O.getOrElse(() => "No quotes!")),
+    );
 };
 
 const main = async () => {
