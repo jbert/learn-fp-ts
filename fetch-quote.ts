@@ -2,7 +2,6 @@
 import axios from "axios";
 import { AxiosResponse } from "axios";
 import * as TE from "fp-ts/TaskEither";
-import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/function";
 
 const responseToString = (r: AxiosResponse<any, any>): string => {
