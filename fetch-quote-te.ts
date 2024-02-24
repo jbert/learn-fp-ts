@@ -15,19 +15,16 @@ const Quote = D.struct({
     h: D.string,
 });
 const QuoteArray = D.array(Quote);
-type Quote = D.TypeOf<typeof Quote>
+type Quote = D.TypeOf<typeof Quote>;
 
-const mapErr = (de: D.DecodeError) : Error => {
-    return Error(JSON.stringify(de))
-}
-
-const parseResponse = (r: AxiosResponse<unknown, unknown>): E.Either<Error, Array<Quote>> => {
-    return pipe(
-        r.data,
-        QuoteArray.decode,
-        E.mapLeft(mapErr),
-    );
+const mapErr = (de: D.DecodeError): Error => {
+    return Error(JSON.stringify(de));
 };
+
+const parseResponse = (
+    r: AxiosResponse<unknown, unknown>
+): E.Either<Error, Array<Quote>> =>
+    pipe(r.data, QuoteArray.decode, E.mapLeft(mapErr));
 
 const quoteToString = (q: Quote): string => {
     return q.q;
@@ -37,26 +34,27 @@ interface Params {
     quoteURL: string;
 }
 
-const fetchPage = (quoteURL: string): TE.TaskEither<Error, Array<Quote>> => {
-    return pipe(
+const fetchPage = (quoteURL: string): TE.TaskEither<Error, Array<Quote>> =>
+    pipe(
         TE.tryCatchK(
             () => axios.get(quoteURL),
             (reason: unknown) => Error(String(reason))
         )(),
-        TE.chain(flow(parseResponse, TE.fromEither)),
+        TE.chain(flow(parseResponse, TE.fromEither))
     );
-};
 
-const program = ({ quoteURL }: Params): TE.TaskEither<Error, string> => {
-    return pipe(
+const program = ({ quoteURL }: Params): TE.TaskEither<Error, string> =>
+    pipe(
         quoteURL,
         fetchPage,
-        TE.map(flow(A.map(quoteToString),
-                    A.head,
-                    O.getOrElse(() => "No quotes!")),
-              ),
+        TE.map(
+            flow(
+                A.map(quoteToString),
+                A.head,
+                O.getOrElse(() => "No quotes!")
+            )
+        )
     );
-};
 
 const main = async () => {
     const params: Params = {
