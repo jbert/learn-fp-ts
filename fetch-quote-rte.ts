@@ -6,7 +6,7 @@ import * as E from "fp-ts/Either";
 import * as A from "fp-ts/Array";
 import * as D from "io-ts/Decoder";
 import * as O from "fp-ts/Option";
-import { pipe } from "fp-ts/function";
+import { flow, pipe } from "fp-ts/function";
 
 const Quote = D.struct({
     q: D.string,
@@ -21,12 +21,11 @@ const mapErr = (de: D.DecodeError) : Error => {
     return Error(JSON.stringify(de))
 }
 
-const parseResponse = (r: AxiosResponse<unknown, unknown>): TE.TaskEither<Error, Array<Quote>> => {
+const parseResponse = (r: AxiosResponse<unknown, unknown>): E.Either<Error, Array<Quote>> => {
     return pipe(
         r.data,
         QuoteArray.decode,
         E.mapLeft(mapErr),
-        TE.fromEither,
     );
 };
 
@@ -44,7 +43,7 @@ const fetchPage = (quoteURL: string): TE.TaskEither<Error, Array<Quote>> => {
             () => axios.get(quoteURL),
             (reason: unknown) => Error(String(reason))
         )(),
-        TE.chain(parseResponse),
+        TE.chain(flow(parseResponse, TE.fromEither)),
     );
 };
 
